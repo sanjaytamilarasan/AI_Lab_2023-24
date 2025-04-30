@@ -1,5 +1,5 @@
 # Ex.No: 3  Implementation of Minimax Search
-### DATE:   19/03/2025                                                  
+### DATE: 25/04/2025                                                                         
 ### REGISTER NUMBER : 212222040147
 ### AIM: 
 Write a mini-max search algorithm to find the optimal value of MAX Player from the given graph.
@@ -18,38 +18,27 @@ Write a mini-max search algorithm to find the optimal value of MAX Player from t
 ```
 import math
 def minimax (curDepth, nodeIndex, maxTurn, scores,targetDepth):
-    # base case : targetDepth reached
-    if (curDepth == targetDepth):
-        return scores[nodeIndex]
-    if (maxTurn):
-        return max(minimax(curDepth + 1, nodeIndex * 2,False, scores, targetDepth),
-                   minimax(curDepth + 1, nodeIndex * 2 + 1,
-                    False, scores, targetDepth))
-     
-    else:
-        return min(minimax(curDepth + 1, nodeIndex * 2, True, scores, targetDepth),
-                   minimax(curDepth + 1, nodeIndex * 2 + 1,
-                     True, scores, targetDepth))
-     
+  # base case : targetDepth reached
+  if (curDepth == targetDepth):
+    return scores[nodeIndex]
+  if (maxTurn):
+    return max(minimax(curDepth + 1, nodeIndex * 2,False, scores,
+targetDepth),minimax(curDepth + 1, nodeIndex * 2 + 1,False, scores,
+targetDepth))
+  else:
+    return min(minimax(curDepth + 1, nodeIndex * 2, True, scores,
+targetDepth),minimax(curDepth + 1, nodeIndex * 2 + 1,True, scores,
+targetDepth))
 # Driver code
 scores = [3, 5, 2, 9, 12, 5, 23, 20]
-treeDepth = math.log(len(scores), 2) # calculate depth of node  log 8 (base 2) = 3)
+treeDepth = math.log(len(scores), 2) # calculate depth of node log 8 (base2) = 3)
 print("The optimal value is : ", end = "")
-  print(minimax(0, 0, True, scores, treeDepth))
+print(minimax(0, 0, True, scores, treeDepth))
 ```
-
-
-
-
-
-
-
-
-
-
 ### Output:
+<img width="752" alt="minmax" src="https://github.com/Vineesha29031970/AI_Lab_2023-24/assets/133136880/2cfa5dfd-2a53-488a-a21f-fa53c266e5e3">
 
-![image](https://github.com/Rajithxx/AI_Lab_2023-24/assets/148357145/498ae52d-8016-425b-a9ad-94d2571b9a9c)
+
 
 
 ### Result:
