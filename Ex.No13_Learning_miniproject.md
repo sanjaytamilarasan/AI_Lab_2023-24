@@ -1,5 +1,4 @@
 # Implementation-of-SVM-For-Spam-Mail-Detection
-## DATE : 20/05/2025
 ## Register Number: 212222040147
 ## AIM:
 To write a program to implement the SVM For Spam Mail Detection.
