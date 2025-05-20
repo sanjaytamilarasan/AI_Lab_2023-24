@@ -1,110 +1,79 @@
-# Ex.No: 13 - User Identification Using Walking Activity with ResNet
-### DATE: 20/05/2025                                                                           
+# Ex.No: 13 Learning – Use Supervised Learning  
+
+### DATE:                                                                            
 ### REGISTER NUMBER : 212222220024
+
 ### AIM: 
-To write a program to train the classifier for user identification using walking activity data collected from smartphone accelerometers.
+To write a program to train the classifier for a Medicine Recommendation System using Supervised Learning (SVM algorithm).
 
 ###  Algorithm:
-```
-1.Load and extract accelerometer data from all participants CSV files.
-2.Segment the data using a sliding window to create fixed-length sequences.
-3.Label each sequence based on the participant ID.
-4.Split the dataset into training and test sets after one-hot encoding labels.
-5.Build a 1D ResNet model with residual blocks for time-series classification.
-6.Train the model on the training data using categorical cross-entropy loss.
-7.Evaluate the model on test data and predict sample labels.
-```
+1.Start the program.
+
+2.Import the required libraries (pandas, sklearn, etc.).
+
+3.Load the dataset containing symptoms and diseases.
+
+4.Preprocess the data (remove nulls, encode values).
+
+5.Split the data into training and testing sets.
+
+6.Train the Support Vector Machine (SVM) classifier using the training data.
+
+7.Predict the disease for given input symptoms using the trained model.
+
+8.Recommend suitable medicines based on the predicted disease.
+
+9.Display the prediction and medicine suggestions.
+
+10.End the program.
 
 ### Program:
 ```
-# STEP 1: Unzip the Dataset
-import zipfile, os
-zip_path = "/content/user+identification+from+walking+activity.zip"
-extract_path = "/content/data"
-with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-    zip_ref.extractall(extract_path)
-
-# STEP 2: Preprocess the Data
-import glob
+from flask import Flask, request, render_template
 import numpy as np
 import pandas as pd
-
-all_files = glob.glob("/content/data/User Identification From Walking Activity/*.csv")
-data, labels = [], []
-window_size, stride = 100, 50
-
-for i, file in enumerate(all_files):
-    try:
-        df = pd.read_csv(file, header=None)
-        df.columns = ['time', 'x', 'y', 'z']
-        df = df[['x', 'y', 'z']].astype('float32')
-        if len(df) < window_size:
-            continue
-        for j in range(0, len(df) - window_size, stride):
-            segment = df.iloc[j:j + window_size].values
-            data.append(segment)
-            labels.append(i)
-    except Exception as e:
-        print(f"Error with {file}: {e}")
-
-X = np.array(data)
-y = np.array(labels)
-
-# STEP 3: Encode Labels and Split Dataset
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.utils import to_categorical
-
-y_cat = to_categorical(y)
-X_train, X_test, y_train, y_test = train_test_split(X, y_cat, test_size=0.2, random_state=42)
-
-# STEP 4: Build 1D ResNet Model
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv1D, BatchNormalization, ReLU, Add, GlobalAveragePooling1D, Dense
-
-def residual_block(x, filters, kernel_size):
-    shortcut = x
-    x = Conv1D(filters, kernel_size, padding='same')(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = Conv1D(filters, kernel_size, padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Add()([shortcut, x])
-    x = ReLU()(x)
-    return x
-
-def build_resnet(input_shape, num_classes):
-    inputs = Input(shape=input_shape)
-    x = Conv1D(64, 8, padding='same')(inputs)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = residual_block(x, 64, 5)
-    x = residual_block(x, 64, 5)
-    x = residual_block(x, 64, 5)
-    x = GlobalAveragePooling1D()(x)
-    outputs = Dense(num_classes, activation='softmax')(x)
-    return Model(inputs, outputs)
-
-model = build_resnet(input_shape=(X.shape[1], X.shape[2]), num_classes=y_cat.shape[1])
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-model.summary()
-
-# STEP 5: Train the Model
-history = model.fit(X_train, y_train, epochs=20, batch_size=64, validation_split=0.2)
-
-# STEP 6: Evaluate and Predict
-loss, accuracy = model.evaluate(X_test, y_test)
-print(f"Test Accuracy: {accuracy * 100:.2f}%")
-
-sample = X_test[0].reshape(1, X.shape[1], X.shape[2])
-prediction = model.predict(sample)
-predicted_class = np.argmax(prediction)
-true_class = np.argmax(y_test[0])
-print(f"Predicted Participant ID: {predicted_class}, True ID: {true_class}")
+import pickle
+app = Flask(__name__)
+# Load trained SVM model and required datasets
+model = pickle.load(open('model/svc.pkl', 'rb'))
+description = pd.read_csv("datasets/description.csv")
+precautions = pd.read_csv("datasets/precautions_df.csv")
+medications = pd.read_csv('datasets/medications.csv')
+diets = pd.read_csv("datasets/diets.csv")
+workout = pd.read_csv("datasets/workout_df.csv")
+# Mapping of symptoms to indexes and disease labels
+symptoms_dict = {'itching': 0, 'skin_rash': 1, 'nodal_skin_eruptions': 2, 'continuous_sneezing': 3, ...}
+diseases_list = {15: 'Fungal infection', 4: 'Allergy', 16: 'GERD', ...}
+# Predict disease based on user symptoms
+def predict_disease(symptoms):
+    input_vector = np.zeros(len(symptoms_dict))
+    for symptom in symptoms:
+        if symptom in symptoms_dict:
+            input_vector[symptoms_dict[symptom]] = 1
+    return diseases_list[model.predict([input_vector])[0]]
+# Fetch additional details for predicted disease
+def get_info(disease):
+    desc = description[description['Disease'] == disease]['Description'].values[0]
+    prec = precautions[precautions['Disease'] == disease].iloc[0, 1:].tolist()
+    meds = medications[medications['Disease'] == disease]['Medication'].tolist()
+    diet = diets[diets['Disease'] == disease]['Diet'].tolist()
+    work = workout[workout['disease'] == disease]['workout'].tolist()
+    return desc, prec, meds, diet, work
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        user_input = request.form.get('symptoms')
+        symptoms = [s.strip() for s in user_input.split(',')]
+        disease = predict_disease(symptoms)
+        desc, prec, meds, diet, work = get_info(disease)
+        return render_template('index.html', predicted_disease=disease, dis_des=desc, my_precautions=prec, medications=meds, my_diet=diet, workout=work)
+    return render_template('index.html')
+if __name__ == '__main__':
+    app.run(debug=True)
 ```
-
-### Output:
-![Screenshot 2025-05-19 085825](https://github.com/user-attachments/assets/d6f52612-63a1-4f60-b184-29d125ccb411)
-
+### OUTPUT:
+![Screenshot 2025-05-13 103209](https://github.com/user-attachments/assets/49b13ca9-2000-4f25-9f86-3f5f42b1186e)
+![Screenshot 2025-05-13 103320](https://github.com/user-attachments/assets/7b039801-d06e-4431-a8d5-a122bc0ff7c9)
 
 ### Result:
 Thus the system was trained successfully and the prediction was carried out.
