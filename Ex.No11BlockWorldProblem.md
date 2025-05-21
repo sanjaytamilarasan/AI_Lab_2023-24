@@ -1,45 +1,69 @@
-# Ex.No: 9  Logic Programming –  Computer Maintenance Expert System.                                                                            
-### REGISTER NUMBER :212222040147
+# Ex.No: 11  Planning –  Block World Problem 
+### DATE:                                                                            
+### REGISTER NUMBER : 212222040147
 ### AIM: 
-Write a Prolog program to build a computer maintenance expert system.
+To find the sequence of plan for Block word problem using PDDL  
 ###  Algorithm:
-1. Start the program.
-2. Write the rules for each fault in computer.
-3. If system have printing problem, missing dots and no uniform printing then system fault on printer head.
-4. If system have not printing, missing dots and spread inks then system fault on ribbon
-5. If system have not printing, paper jam and out of paper then system fault on paper stuck in printer
-6. Similarly define rules for all faults.
-7. Define facts for system problems.
-8. Find the fault of computer by passing query to system.
+Step 1 :  Start the program <br>
+Step 2 : Create a domain for Block world Problem <br>
+Step 3 :  Create a domain by specifying predicates clear, on table, on, arm-empty, holding. <br>
+Step 4 : Specify the actions pickup, putdown, stack and un-stack in Block world problem <br>
+Step 5 :  In pickup action, Robot arm pick the block on table. Precondition is Block is on table and no other block on specified block and arm-hand empty.<br>
+Step 6:  In putdown action, Robot arm place the block on table. Precondition is robot-arm holding the block.<br>
+Step 7 : In un-stack action, Robot arm pick the block on some block. Precondition is Block is on another block and no other block on specified block and arm-hand empty.<br>
+Step 8 : In stack action, Robot arm place the block on under block. Precondition is Block holded by robot arm and no other block on under block.<br>
+Step 9 : Define a problem for block world problem.<br> 
+Step 10 : Obtain the plan for given problem.<br> 
      
 ### Program:
 ```
-fault(printer_head) :-
-	problem(not_printing),
-	problem(missing_dots),
-	problem(nonuniform_printing).
-fault(ribbon) :-
-	problem(not_printing),
-	problem(missing_dots),
-	problem(spread_ink).
-fault(paper) :-
-	problem(not_printing),
-	problem(paper_jam),
-	problem(out_of_paper).
-fault(motherboard) :-
-	problem(long_beep),
-	problem(short_beep).
-fault(hard_disc) :-
-	problem(two_short_beeps),
-	problem(blank_display).
-problem(not_printing).
-problem(missing_dots).
-problem(spread_ink).
-problem(two_short_beeps).
-problem(blank_display).
+(define (domain blocksworld)
+(:requirements :strips :equality)
+(:predicates (clear ?x)
+             (on-table ?x)
+             (arm-empty)
+             (holding ?x)
+             (on ?x ?y))
+(:action pickup
+  :parameters (?ob)
+  :precondition (and (clear ?ob) (on-table ?ob) (arm-empty))
+  :effect (and (holding ?ob) (not (clear ?ob)) (not (on-table ?ob)) 
+               (not (arm-empty))))
+(:action putdown
+  :parameters  (?ob)
+  :precondition (and (holding ?ob))
+  :effect (and (clear ?ob) (arm-empty) (on-table ?ob) 
+               (not (holding ?ob))))
+(:action stack
+  :parameters  (?ob ?underob)
+  :precondition (and  (clear ?underob) (holding ?ob))
+  :effect (and (arm-empty) (clear ?ob) (on ?ob ?underob)
+               (not (clear ?underob)) (not (holding ?ob))))
+(:action unstack
+  :parameters (?ob ?underob)
+  :precondition (and (on ?ob ?underob) (clear ?ob) (arm-empty))
+  :effect (and (holding ?ob) (clear ?underob)
+               (not (on ?ob ?underob)) (not (clear ?ob)) (not (arm-empty)))))
+
 ```
-### Output:
-![318108949-6044f6eb-d44d-43ae-a3d8-162b57ae5440](https://github.com/user-attachments/assets/3c7e37cc-869f-4f99-ba25-d541a84bad54)
+
+### Input 
+```
+(define (problem pb1)
+   (:domain blocksworld)
+   (:objects a b)
+   (:init (on-table a) (on-table b)  (clear a)  (clear b) (arm-empty))
+   (:goal (and (on a b))))
+```
+
+### Output/Plan:
+
+![image](https://github.com/user-attachments/assets/55dc9b1e-ae2b-451d-9996-64f9edb35d41)
+![image](https://github.com/user-attachments/assets/5310930b-96ba-4494-a669-1d92def62f0b)
+
+
+
+
 
 ### Result:
-Thus the simple omputer maintenance expert system was built sucessfully.
+Thus the plan was found for the initial and goal state of block world problem.
